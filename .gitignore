@@ -1,0 +1,22 @@
+# Build output
+target/
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS / JVM junk
+.DS_Store
+Thumbs.db
+hs_err_pid*
+*.log
+
+# Python (chart scripts)
+__pycache__/
+*.pyc
+.venv/
