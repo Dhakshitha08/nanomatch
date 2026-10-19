@@ -15,7 +15,7 @@ tail latency (p99, p99.9). Both engines are also verified to produce **identical
 
 **Team:** Dhakshitha S (24pw12) and Esther Philemena S (24pw14)
 
-**Stack:** Java 17, Maven, JUnit 5, JMH, Git/GitHub
+**Stack:** Java 17+ (builds on 17 to 25), Maven, JUnit 5, JMH, Git/GitHub
 
 ## Docs (read in this order)
 
@@ -37,13 +37,16 @@ tail latency (p99, p99.9). Both engines are also verified to produce **identical
 
 ```
 src/main/java/com/nanomatch/
-    model/        Order, Trade, Side, MatchingEngine interface   (Person A)
-    baseline/     lock-based engine                              (Person A)
-    lockfree/     ring buffer + lock-free engine                 (Person A)
-    orderbook/    concurrency-aware order book                   (Person A, reviewed by B)
-    sim/          order generator + client/load simulator        (Person B)
-    bench/        JMH benchmark harness                          (Person B)
-src/test/java/com/nanomatch/   correctness + parity tests        (B writes, A reviews)
+    model/        Order, Trade, Side, TradeSink, EngineFactory, MatchingEngine   (Person A)
+    smoke/        JMH smoke test from Day 1                                       (Person A)
+    baseline/     lock-based engine                                               (Person A)
+    lockfree/     ring buffer + lock-free engine                                  (Person A)
+    orderbook/    concurrency-aware order book                                    (Person A, reviewed by B)
+    sim/          order generator + client/load simulator                         (Person B)
+    bench/        JMH benchmark harness                                           (Person B)
+src/test/java/com/nanomatch/
+    engine/       unit tests for the engine classes                               (Person A)
+    verify/       contract, concurrency, parity and simulator tests               (Person B)
 results/          frozen benchmark outputs, versioned by date
 report/           sections/ (one file per person), charts/, REPORT.md
 docs/             team documents
@@ -53,8 +56,8 @@ docs/             team documents
 
 | Day | Theme | Status |
 |---|---|---|
-| 0 | Repo + docs + scope lock | in progress |
-| 1 | Skeleton, JMH, domain model | not started |
+| 0 | Repo + docs + scope lock | done |
+| 1 | Skeleton, JMH, domain model | in progress |
 | 2 | Baseline engine + tests (Checkpoint 2) | not started |
 | 3 | Ring buffer + load simulator | not started |
 | 4 | Parity check (Checkpoint 3) | not started |
@@ -62,6 +65,12 @@ docs/             team documents
 | 6 | Full benchmarks (Checkpoint 5) | not started |
 | 7 | Report + final review (Checkpoint 6) | not started |
 
-## How to run
+## How to build and test
 
-Filled in on Day 7 (correctness suite and JMH benchmark suite, with expected approximate output).
+```
+mvn clean test                 # compile and run all tests
+mvn clean package              # also builds target/benchmarks.jar
+java -jar target/benchmarks.jar SmokeBenchmark -f 1 -wi 1 -i 2 -w 1s -r 1s
+```
+
+The full benchmark and correctness instructions are filled in on Day 7.
