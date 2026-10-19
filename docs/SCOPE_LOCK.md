@@ -22,7 +22,8 @@ written down in the **Future work** list at the bottom, not built.
 ## Sign-off
 
 - [x] Dhakshitha S (Person A): date: ____________
-- [ ] Esther Philemena S (Person B): date: ____________
+  - [x] Esther Philemena S (Person B): date: 2026-10-19
+____________
 
 (Change `[ ]` to `[x]` and add the date, then commit.)
 
