@@ -28,6 +28,7 @@ tail latency (p99, p99.9). Both engines are also verified to produce **identical
 | [docs/PERSON_B_PLAN.md](docs/PERSON_B_PLAN.md) | Person B (load + benchmarks): tasks and files, day by day |
 | [docs/MERGING_REVIEW_PLAN.md](docs/MERGING_REVIEW_PLAN.md) | Branches, file ownership, conflict-free merge protocol, checkpoint reviews |
 | [docs/BENCHMARKING_PLAN.md](docs/BENCHMARKING_PLAN.md) | JMH methodology, fair-comparison rules, reproducibility |
+| [docs/JMH_NOTES.md](docs/JMH_NOTES.md) | JMH notes used for the benchmark design |
 
 ## Branches
 
@@ -57,8 +58,8 @@ docs/             team documents
 | Day | Theme | Status |
 |---|---|---|
 | 0 | Repo + docs + scope lock | done |
-| 1 | Skeleton, JMH, domain model | in progress |
-| 2 | Baseline engine + tests (Checkpoint 2) | not started |
+| 1 | Skeleton, JMH, domain model | done |
+| 2 | Baseline engine + tests (Checkpoint 2) | in progress |
 | 3 | Ring buffer + load simulator | not started |
 | 4 | Parity check (Checkpoint 3) | not started |
 | 5 | Hardening + lock-free freeze (Checkpoint 4) | not started |
