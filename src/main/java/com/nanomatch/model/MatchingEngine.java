@@ -53,10 +53,23 @@ public interface MatchingEngine extends AutoCloseable {
     /**
      * Waits until every order whose {@code submit} had already returned when this method was called has
      * been fully processed. Intended for tests and benchmarks, not for the hot path.
+     *
+     * @throws IllegalStateException if that does not happen within 30 seconds (so a bug shows up as a failing
+     *                               test instead of a hang)
      */
     default void awaitIdle() {
+        awaitIdle(30_000);
+    }
+
+    /** Like {@link #awaitIdle()} but with an explicit time limit in milliseconds. */
+    default void awaitIdle(long timeoutMillis) {
         final long target = submittedCount();
+        final long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
         while (processedCount() < target) {
+            if (System.nanoTime() - deadline > 0) {
+                throw new IllegalStateException("engine did not become idle within " + timeoutMillis
+                        + " ms: processed " + processedCount() + " of " + target + " orders");
+            }
             Thread.onSpinWait();
         }
     }
