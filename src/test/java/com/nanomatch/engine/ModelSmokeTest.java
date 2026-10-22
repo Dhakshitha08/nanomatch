@@ -98,6 +98,13 @@ class ModelSmokeTest {
         StubEngine engine = new StubEngine();
         engine.submit(new Order(1, Side.BUY, 100, 1));
         engine.processed = 1;
-        assertDoesNotThrow(engine::awaitIdle);
+        assertDoesNotThrow(() -> engine.awaitIdle());
+    }
+
+    @Test
+    void awaitIdleTimesOutInsteadOfHangingForever() {
+        StubEngine engine = new StubEngine();
+        engine.submit(new Order(1, Side.BUY, 100, 1)); // submitted = 1, but processed stays 0
+        assertThrows(IllegalStateException.class, () -> engine.awaitIdle(50));
     }
 }
