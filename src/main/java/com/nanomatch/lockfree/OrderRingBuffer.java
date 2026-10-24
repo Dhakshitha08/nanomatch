@@ -3,7 +3,6 @@ package com.nanomatch.lockfree;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A pre-allocated, Disruptor-style ring buffer: <b>many producers, one consumer</b>, no locks.
@@ -36,8 +35,12 @@ import java.util.concurrent.atomic.AtomicLong;
  *       consumer is still reading.</li>
  * </ul>
  *
- * <p>Wait loops back off (spin, then yield) via {@link #backoff(int)}. Cache-line padding of the hot counters
- * is added on Day 5.
+ * <h2>False sharing</h2>
+ * {@code claimed} (written by every producer) and {@code consumed} (written by the matching thread after every
+ * order) are {@link PaddedSequence}s: each owns its cache line, so a write to one never invalidates the line the
+ * other lives on.
+ *
+ * <p>Wait loops back off (spin, then yield) via {@link #backoff(int)}.
  */
 public final class OrderRingBuffer {
 
@@ -50,9 +53,9 @@ public final class OrderRingBuffer {
     private final int[] available;
 
     /** Next sequence to claim, which is also the number of sequences claimed so far (tickets issued). */
-    private final AtomicLong claimed = new AtomicLong();
+    private final PaddedSequence claimed = new PaddedSequence();
     /** Number of sequences the consumer has finished with; sequences below this are free to be reused. */
-    private final AtomicLong consumed = new AtomicLong();
+    private final PaddedSequence consumed = new PaddedSequence();
 
     private volatile boolean halted;
 

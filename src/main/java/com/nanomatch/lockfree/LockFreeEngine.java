@@ -1,9 +1,9 @@
 package com.nanomatch.lockfree;
 
-import com.nanomatch.baseline.LockBasedOrderBook;
 import com.nanomatch.model.MatchingEngine;
 import com.nanomatch.model.Side;
 import com.nanomatch.model.TradeSink;
+import com.nanomatch.orderbook.ArrayOrderBook;
 import java.util.Objects;
 
 /**
@@ -16,9 +16,15 @@ import java.util.Objects;
  * thread. The ticket {@code submit} returns is the order's ring sequence, and {@code processedCount() > ticket}
  * means it has been fully matched.
  *
- * <p><b>Day 3 status:</b> the matching thread reuses the simple {@link LockBasedOrderBook}, so this version
- * is about getting the lock-free ingestion correct first. The order book is replaced by an optimized,
- * allocation-free one, and the hot path is padded, on Days 4 and 5.
+ * <p>The matching thread uses the allocation-free {@link ArrayOrderBook}. With that book, the ring buffer's
+ * pre-allocated slots and a sink that does not allocate (for example {@link TradeSink#NOOP}), the whole path
+ * from {@code submit} to the matched trade allocates nothing per order, so garbage-collection pauses cannot add
+ * latency spikes. {@code AllocationTest} checks this automatically.
+ *
+ * <p><b>Price range:</b> the book keeps one array slot per price tick, so the engine accepts prices only
+ * inside {@code [minPrice, maxPrice]} (a price outside is rejected by {@code submit} like any invalid order,
+ * without using a ticket). Choose the range to fit the workload: the tighter it is, the faster the book finds
+ * the next best price after a level empties. The default range is 1 to 65,535.
  *
  * <p>The {@link TradeSink} is called only from the matching thread, one trade at a time.
  *
@@ -28,9 +34,13 @@ import java.util.Objects;
 public final class LockFreeEngine implements MatchingEngine {
 
     public static final int DEFAULT_CAPACITY = 1 << 16;
+    public static final long DEFAULT_MIN_PRICE = 1;
+    public static final long DEFAULT_MAX_PRICE = 65_535;
 
     private final OrderRingBuffer ring;
-    private final LockBasedOrderBook book = new LockBasedOrderBook(); // touched by the matching thread only
+    private final ArrayOrderBook book;           // touched by the matching thread only
+    private final long minPrice;
+    private final long maxPrice;
     private final TradeSink sink;
     private final Thread matcher;
 
@@ -43,8 +53,22 @@ public final class LockFreeEngine implements MatchingEngine {
 
     /** @param capacity ring buffer size; a power of two, at least 2 (a small ring makes producers wait more) */
     public LockFreeEngine(TradeSink sink, int capacity) {
+        this(sink, capacity, DEFAULT_MIN_PRICE, DEFAULT_MAX_PRICE, ArrayOrderBook.DEFAULT_MAX_RESTING_ORDERS);
+    }
+
+    /**
+     * @param capacity         ring buffer size; a power of two, at least 2
+     * @param minPrice         lowest accepted price in ticks (at least 1)
+     * @param maxPrice         highest accepted price in ticks
+     * @param maxRestingOrders most orders that can rest on the book at once. If a run would exceed it, the
+     *                         matching thread fails visibly (see {@link #failure()}) instead of allocating
+     */
+    public LockFreeEngine(TradeSink sink, int capacity, long minPrice, long maxPrice, int maxRestingOrders) {
         this.sink = Objects.requireNonNull(sink, "sink");
         this.ring = new OrderRingBuffer(capacity);
+        this.book = new ArrayOrderBook(minPrice, maxPrice, maxRestingOrders);
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
         this.matcher = new Thread(this::runMatchingLoop, "nanomatch-matcher");
         this.matcher.setDaemon(true);
         this.matcher.start(); // last statement: every field above is already assigned
@@ -58,6 +82,10 @@ public final class LockFreeEngine implements MatchingEngine {
         }
         if (quantity <= 0) {
             throw new IllegalArgumentException("quantity must be > 0 but was " + quantity);
+        }
+        if (price < minPrice || price > maxPrice) {
+            throw new IllegalArgumentException("price " + price + " is outside this engine's range ["
+                    + minPrice + ", " + maxPrice + "]");
         }
         if (closed) {
             throw new IllegalStateException("engine is closed");
@@ -84,6 +112,11 @@ public final class LockFreeEngine implements MatchingEngine {
     @Override
     public long processedCount() {
         return ring.consumedCount();
+    }
+
+    /** Id of the matching thread (used by the allocation test). */
+    public long matcherThreadId() {
+        return matcher.getId();
     }
 
     /** The exception that stopped matching, or null. Once set, further submits are rejected. */
