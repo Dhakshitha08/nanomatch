@@ -113,3 +113,44 @@ Things to think about and settle with Person A on Day 5:
 
 - The workload comes from `OrderGenerator` with a fixed seed, so every run sees the same orders.
 - Each run's JSON goes to `results/<date>/` together with `ENVIRONMENT.md` (CPU, OS, Java version, flags).
+
+## 9. Decisions made on Day 5 (the harness as built)
+
+These settle the open design question in section 6.
+
+- **Producers** are JMH threads: `-t 1`, `-t 2`, `-t 4`, `-t 8`. The runner script loops over them.
+- **Engine** is a `@Param` (`baseline`, `lockfree`). Both engines get exactly the same orders and send trades to a
+  sink that does nothing.
+- **Three benchmarks** in `EngineBenchmark`:
+  - `throughput` (Throughput mode): one order per call, no waiting. Sustained orders per second.
+  - `steadyLatency` (SampleTime mode): submit one order and wait until it is fully processed. Percentiles under a
+    constant load of one in-flight order per producer.
+  - `burstLatency` (SampleTime mode): 32 orders back to back, then wait for the last. One sample is one whole burst.
+- **Latency definition** is the one in section 6 (ticket spin loop), in `BenchmarkWorkload.submitAndWait`.
+- **Workload:** random orders in a tight band (10,000 +/- 3 ticks), quantity 1 to 5, with two rules.
+  1. Every BUY is at or above the mid price and every SELL at or below it, so opposite orders always cross.
+     Almost every order trades and several price levels are used.
+  2. Orders alternate BUY, SELL and each pair has equal quantity, so every cycle through a thread's order array nets
+     to zero.
+  The engines have no cancel, so without these rules the book grows forever and the benchmark would measure memory
+  growth. Both mistakes were made in earlier versions and caught by checks: plain uniform random prices (the book
+  grew with every order), and then a random side with random quantity (the same small imbalance repeated on every
+  cycle, 60,000 resting units after 6 million orders). `BenchmarkWorkloadTest` now checks both rules.
+  **Limitation to state in the report:** the book therefore stays tiny (a handful of resting orders), so these
+  benchmarks measure the cost of handing orders to the matcher and matching them, not the cost of a deep book.
+- **Engine lifetime:** created once per fork (`@Setup(Level.Trial)`), so the matching thread keeps existing across
+  iterations, which also lets `-prof gc` see its allocations.
+- **Cores:** with N producers the lock-free engine also runs one matching thread, so N + 1 threads compete for
+  cores. `run_suite.py` warns when N + 1 is more than the machine's logical cores. Results for such counts are
+  distorted by CPU sharing, so say so in the report instead of hiding them.
+- **Known limitation to write in the report:** the lock-free engine's order book is bounded (a fixed price range
+  and a fixed number of resting orders), the baseline's is not.
+
+### How to run
+
+```
+mvn clean package -DskipTests
+python results/run_suite.py --out results/smoke --run 1 --quick      # smoke test, a few minutes
+python results/run_suite.py --out results/<date> --run 1             # a real run (Day 6)
+python results/run_suite.py --out results/<date> --run 1 --gc        # allocation per operation
+```
