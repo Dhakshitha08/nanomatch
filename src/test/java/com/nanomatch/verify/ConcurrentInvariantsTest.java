@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.nanomatch.baseline.LockBasedEngine;
+import com.nanomatch.lockfree.LockFreeEngine;
 import com.nanomatch.model.EngineFactory;
 import com.nanomatch.model.MatchingEngine;
 import com.nanomatch.model.Order;
@@ -35,7 +36,8 @@ import org.junit.jupiter.api.Test;
  * </ol>
  *
  * <p>(That the book is never left crossed is checked in Person A's own tests, which can look inside the
- * baseline's book.) To cover another engine, add it to {@link #ENGINES}.
+ * books.) To cover another engine, add it to {@link #ENGINES}. The cross-engine comparison (lock-free against
+ * baseline) is {@code ParityTest}.
  */
 class ConcurrentInvariantsTest {
 
@@ -46,7 +48,7 @@ class ConcurrentInvariantsTest {
 
     static {
         ENGINES.put("baseline", LockBasedEngine::new);
-        // Day 4: ENGINES.put("lockfree", LockFreeEngine::new);
+        ENGINES.put("lockfree", LockFreeEngine::new);
     }
 
     @Test
