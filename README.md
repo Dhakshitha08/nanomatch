@@ -60,8 +60,8 @@ docs/             team documents
 | 0 | Repo + docs + scope lock | done |
 | 1 | Skeleton, JMH, domain model | done |
 | 2 | Baseline engine + tests (Checkpoint 2) | done |
-| 3 | Ring buffer + load simulator | in progress |
-| 4 | Parity check (Checkpoint 3) | not started |
+| 3 | Ring buffer + load simulator | done |
+| 4 | Parity check (Checkpoint 3) | in progress |
 | 5 | Hardening + lock-free freeze (Checkpoint 4) | not started |
 | 6 | Full benchmarks (Checkpoint 5) | not started |
 | 7 | Report + final review (Checkpoint 6) | not started |
