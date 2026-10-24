@@ -44,6 +44,8 @@ A merge conflict only happens when two branches change the **same lines of the s
 | `src/test/java/com/nanomatch/engine/**` | A | A's unit tests for their own classes |
 | `src/test/java/com/nanomatch/verify/**` | B | Contract, concurrency, parity, simulator tests |
 | `results/<date>/**` | B | Raw JMH JSON, `ENVIRONMENT.md`. A adds only a separately named file, `results/<date>/gc-profile-A.txt` |
+| `results/run_suite.py` | B | Script that runs the full JMH suite and writes the JSON files |
+| `results/day5-evidence/**` | A | A's padding A/B and GC-profile output files from Day 5 |
 | `report/charts/**` | B | Chart script and PNGs |
 | `report/sections/A_design_and_correctness.md` | A | |
 | `report/sections/B_results_and_methodology.md` | B | |

@@ -214,4 +214,27 @@ class LockFreeEngineTest {
         }
         concurrent.close();
     }
+
+    @Test
+    void pricesOutsideTheConfiguredRangeAreRejectedWithoutUsingATicket() {
+        try (LockFreeEngine ranged = new LockFreeEngine((b, s, p, q) -> { }, 16, 100, 110, 16)) {
+            assertThrows(IllegalArgumentException.class, () -> ranged.submit(1, Side.BUY, 99, 1));
+            assertThrows(IllegalArgumentException.class, () -> ranged.submit(2, Side.SELL, 111, 1));
+            assertEquals(0, ranged.submittedCount());
+            assertEquals(0, ranged.submit(3, Side.BUY, 100, 1));
+            assertEquals(1, ranged.submit(4, Side.SELL, 110, 1));
+        }
+    }
+
+    @Test
+    void aFullOrderPoolStopsTheEngineVisiblyInsteadOfLosingOrdersSilently() {
+        try (LockFreeEngine small = new LockFreeEngine((b, s, p, q) -> { }, 16, 100, 110, 4)) {
+            for (int i = 1; i <= 5; i++) { // the fifth resting order does not fit
+                small.submit(i, Side.BUY, 100, 1);
+            }
+            small.awaitIdle(); // the matching thread keeps counting, so waiting does not hang
+            assertTrue(small.failure() instanceof IllegalStateException, "failure was " + small.failure());
+            assertThrows(IllegalStateException.class, () -> small.submit(6, Side.BUY, 100, 1));
+        }
+    }
 }

@@ -1,0 +1,43 @@
+# JMH version: 1.37
+# VM version: JDK 21.0.12.1, OpenJDK 64-Bit Server VM, 21.0.12.1+1-LTS
+# VM invoker: C:\Program Files\Eclipse Adoptium\jdk-21.0.12.101-hotspot\bin\java.exe
+# VM options: <none>
+# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)
+# Warmup: 2 iterations, 2 s each
+# Measurement: 3 iterations, 2 s each
+# Timeout: 10 min per iteration
+# Threads: 3 threads, will synchronize iterations
+# Benchmark mode: Throughput, ops/time
+# Benchmark: com.nanomatch.smoke.PaddingBenchmark.produce
+
+# Run progress: 0.00% complete, ETA 00:00:10
+# Fork: 1 of 1
+# Warmup Iteration   1: 5831142.153 ops/s
+# Warmup Iteration   2: 5689656.876 ops/s
+Iteration   1: 6426473.031 ops/s
+Iteration   2: 6063517.297 ops/s
+Iteration   3: 5425596.371 ops/s
+
+
+Result "com.nanomatch.smoke.PaddingBenchmark.produce":
+  5971862.233 ┬▒(99.9%) 9243988.427 ops/s [Average]
+  (min, avg, max) = (5425596.371, 5971862.233, 6426473.031), stdev = 506694.198
+  CI (99.9%): [Ôëê 0, 15215850.660] (assumes normal distribution)
+
+
+# Run complete. Total time: 00:00:11
+
+REMEMBER: The numbers below are just data. To gain reusable insights, you need to follow up on
+why the numbers are the way they are. Use profilers (see -prof, -lprof), design factorial
+experiments, perform baseline and negative tests that provide experimental control, make sure
+the benchmarking environment is safe on JVM/OS/HW level, ask for reviews from the domain experts.
+Do not assume the numbers tell you what you want them to tell.
+
+NOTE: Current JVM experimentally supports Compiler Blackholes, and they are in use. Please exercise
+extra caution when trusting the results, look into the generated code to check the benchmark still
+works, and factor in a small probability of new VM bugs. Additionally, while comparisons between
+different JVMs are already problematic, the performance difference caused by different Blackhole
+modes can be very significant. Please make sure you use the consistent Blackhole mode for comparisons.
+
+Benchmark                  Mode  Cnt        Score         Error  Units
+PaddingBenchmark.produce  thrpt    3  5971862.233 ┬▒ 9243988.427  ops/s
