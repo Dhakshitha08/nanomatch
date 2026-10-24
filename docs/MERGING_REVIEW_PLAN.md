@@ -46,11 +46,12 @@ A merge conflict only happens when two branches change the **same lines of the s
 | `results/<date>/**` | B | Raw JMH JSON, `ENVIRONMENT.md`. A adds only a separately named file, `results/<date>/gc-profile-A.txt` |
 | `results/run_suite.py` | B | Script that runs the full JMH suite and writes the JSON files |
 | `results/day5-evidence/**` | A | A's padding A/B and GC-profile output files from Day 5 |
+| `results/<date>/A/**` | A | A's Day 6 evidence (GC profile, ring scaling) and `review-A.md`. B never edits this folder |
 | `report/charts/**` | B | Chart script and PNGs |
 | `report/sections/A_design_and_correctness.md` | A | |
 | `report/sections/B_results_and_methodology.md` | B | |
 | `report/REPORT.md` | A | Assembled on Day 7 from the two section files |
-| Tags (`baseline-freeze`, `parity-verified`, `lockfree-freeze`, `v1.0`) | A | |
+| Tags (`baseline-freeze`, `parity-verified`, `lockfree-freeze`, `benchmarks-frozen`, `v1.0`) | A | |
 
 Package layout (adapted from the original top-level-folder layout, to avoid multi-module Maven overhead in a
 one-week schedule): `baseline_engine` = `baseline/`, `lockfree_engine` = `lockfree/`, `orderbook` = `orderbook/`,
@@ -115,7 +116,7 @@ Commit message format: `dayN(A): ...` or `dayN(B): ...`. Always set your own `us
 | 2 | Baseline freeze | 2 | Baseline engine + correctness suite, both on `main`, suite green | `baseline-freeze` |
 | 3 | Correctness parity | 4 | Lock-free vs baseline identical on same inputs | `parity-verified` |
 | 4 | Lock-free freeze | 5 | Finalized lock-free engine, full suite green, `-prof gc` shows ~no allocation | `lockfree-freeze` |
-| 5 | Benchmark methodology review | 6 | Settings documented, 3 runs stable, comparison fair | |
+| 5 | Benchmark methodology review | 6 | Settings documented, 3 runs stable, comparison fair | `benchmarks-frozen` |
 | 6 | Final review | 7 | Report matches frozen numbers; fresh clone works | `v1.0` |
 
 **Checkpoint step (A, after B's turn).** On checkpoint days, once both of you have merged into `main`:

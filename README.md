@@ -62,8 +62,8 @@ docs/             team documents
 | 2 | Baseline engine + tests (Checkpoint 2) | done |
 | 3 | Ring buffer + load simulator | done |
 | 4 | Parity check (Checkpoint 3) | done |
-| 5 | Hardening + lock-free freeze (Checkpoint 4) | in progress |
-| 6 | Full benchmarks (Checkpoint 5) | not started |
+| 5 | Hardening + lock-free freeze (Checkpoint 4) | done |
+| 6 | Full benchmarks (Checkpoint 5) | in progress |
 | 7 | Report + final review (Checkpoint 6) | not started |
 
 ## How to build and test

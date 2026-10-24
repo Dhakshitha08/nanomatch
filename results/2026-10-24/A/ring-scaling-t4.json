@@ -1,0 +1,53 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "com.nanomatch.smoke.PaddingBenchmark.produce",
+        "mode" : "thrpt",
+        "threads" : 4,
+        "forks" : 1,
+        "jvm" : "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.12.101-hotspot\\bin\\java.exe",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "21.0.12.1",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12.1+1-LTS",
+        "warmupIterations" : 2,
+        "warmupTime" : "2 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 3,
+        "measurementTime" : "2 s",
+        "measurementBatchSize" : 1,
+        "primaryMetric" : {
+            "score" : 5052815.435847342,
+            "scoreError" : 3537001.4419519827,
+            "scoreConfidence" : [
+                1515813.9938953593,
+                8589816.877799325
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4871461.727509408,
+                "50.0" : 5029823.324076672,
+                "90.0" : 5257161.255955946,
+                "95.0" : 5257161.255955946,
+                "99.0" : 5257161.255955946,
+                "99.9" : 5257161.255955946,
+                "99.99" : 5257161.255955946,
+                "99.999" : 5257161.255955946,
+                "99.9999" : 5257161.255955946,
+                "100.0" : 5257161.255955946
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    4871461.727509408,
+                    5029823.324076672,
+                    5257161.255955946
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
