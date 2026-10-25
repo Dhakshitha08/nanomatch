@@ -50,7 +50,9 @@ A merge conflict only happens when two branches change the **same lines of the s
 | `report/charts/**` | B | Chart script and PNGs |
 | `report/sections/A_design_and_correctness.md` | A | |
 | `report/sections/B_results_and_methodology.md` | B | |
-| `report/REPORT.md` | A | Assembled on Day 7 from the two section files |
+| `report/sections/A0_introduction.md`, `report/sections/A9_conclusion.md` | A | |
+| `report/assemble_report.py`, `report/evidence_numbers.py` | A | |
+| `report/REPORT.md` | A | Assembled on Day 7 from the section files by `report/assemble_report.py` |
 | Tags (`baseline-freeze`, `parity-verified`, `lockfree-freeze`, `benchmarks-frozen`, `v1.0`) | A | |
 
 Package layout (adapted from the original top-level-folder layout, to avoid multi-module Maven overhead in a

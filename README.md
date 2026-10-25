@@ -6,9 +6,9 @@ order wins.
 
 The engine is built **twice** and the two versions are compared:
 
-1. **Baseline**: a simple, correct engine using standard Java locks.
-2. **Lock-free**: a rebuild using a Disruptor-style ring buffer, cache-line padding, and an
-   allocation-free hot path.
+1. **Baseline**: a simple, correct engine using a standard Java lock.
+2. **Lock-free**: a rebuild using a Disruptor-style ring buffer, cache-line padding, an allocation-free
+   array-based order book, and a single matching thread.
 
 A multi-threaded client simulator drives both engines at increasing load. JMH measures throughput and
 tail latency (p99, p99.9). Both engines are also verified to produce **identical trades on identical input**.
@@ -17,7 +17,38 @@ tail latency (p99, p99.9). Both engines are also verified to produce **identical
 
 **Stack:** Java 17+ (builds on 17 to 25), Maven, JUnit 5, JMH, Git/GitHub
 
-## Docs (read in this order)
+## The report
+
+The full report is [report/REPORT.md](report/REPORT.md): the design and why it is correct, the benchmark method, the
+results with charts, and the conclusions, including what the results do **not** show.
+
+In short (numbers and evidence are in the report):
+
+- both engines produce identical trades on identical input, also under concurrent load;
+- with more than one producer, the lock-free engine's p99 latency is clearly lower than the baseline's;
+- it is not a universal win: in these measurements the lock-free engine's throughput was lower with 4 and 8
+  producers, and its median latency was higher with 4 and 8 producers.
+
+## Build, test, benchmark
+
+```
+mvn clean test                 # compile and run all 115 tests
+mvn clean package              # also builds target/benchmarks.jar
+
+# quick check that the benchmark runs (short settings, not results)
+java -jar target/benchmarks.jar EngineBenchmark -p engine=lockfree -t 2 -f 1 -wi 1 -i 2 -w 1s -r 1s
+
+# the full suite, as used for the report (about 20 minutes per run; keep the machine otherwise idle)
+python results/run_suite.py --out results/<date> --run 1        # and --run 2, --run 3
+python results/analyze_runs.py --dir results/<date> --runs 1 2 3
+python report/charts/make_charts.py --date <date> --check
+python report/assemble_report.py
+```
+
+The frozen results used in the report are in `results/2026-10-24/` (raw JMH JSON and console logs of every run, the
+environment description, the summary, and both authors' independent reviews).
+
+## Docs
 
 | File | What it is |
 |---|---|
@@ -28,28 +59,29 @@ tail latency (p99, p99.9). Both engines are also verified to produce **identical
 | [docs/PERSON_B_PLAN.md](docs/PERSON_B_PLAN.md) | Person B (load + benchmarks): tasks and files, day by day |
 | [docs/MERGING_REVIEW_PLAN.md](docs/MERGING_REVIEW_PLAN.md) | Branches, file ownership, conflict-free merge protocol, checkpoint reviews |
 | [docs/BENCHMARKING_PLAN.md](docs/BENCHMARKING_PLAN.md) | JMH methodology, fair-comparison rules, reproducibility |
-| [docs/JMH_NOTES.md](docs/JMH_NOTES.md) | JMH notes used for the benchmark design |
+| [docs/JMH_NOTES.md](docs/JMH_NOTES.md) | JMH notes and the decisions behind the benchmark harness |
 
-## Branches
+## Branches and tags
 
-`main` (always green, tagged at checkpoints), `person-a` (Dhakshitha), `person-b` (Esther).
+`main` (always green), `person-a` (Dhakshitha), `person-b` (Esther). Tags: `baseline-freeze`, `parity-verified`,
+`lockfree-freeze`, `benchmarks-frozen`, `v1.0`.
 
 ## Repo layout
 
 ```
 src/main/java/com/nanomatch/
     model/        Order, Trade, Side, TradeSink, EngineFactory, MatchingEngine   (Person A)
-    smoke/        JMH smoke test from Day 1                                       (Person A)
-    baseline/     lock-based engine                                               (Person A)
-    lockfree/     ring buffer + lock-free engine                                  (Person A)
-    orderbook/    concurrency-aware order book                                    (Person A, reviewed by B)
-    sim/          order generator + client/load simulator                         (Person B)
-    bench/        JMH benchmark harness                                           (Person B)
+    smoke/        JMH smoke test and the ring-buffer padding benchmark            (Person A)
+    baseline/     lock-based engine and its order book                            (Person A)
+    lockfree/     ring buffer, padded counters, lock-free engine                  (Person A)
+    orderbook/    allocation-free array-based order book                          (Person A)
+    sim/          order generator and client/load simulator                       (Person B)
+    bench/        JMH benchmark and its workload                                  (Person B)
 src/test/java/com/nanomatch/
-    engine/       unit tests for the engine classes                               (Person A)
-    verify/       contract, concurrency, parity and simulator tests               (Person B)
-results/          frozen benchmark outputs, versioned by date
-report/           sections/ (one file per person), charts/, REPORT.md
+    engine/       unit tests, differential and allocation tests                   (Person A)
+    verify/       contract, concurrency, parity, simulator and workload tests     (Person B)
+results/          run_suite.py, analyze_runs.py, frozen results by date
+report/           sections/ (one file per author), charts/, REPORT.md
 docs/             team documents
 ```
 
@@ -63,15 +95,5 @@ docs/             team documents
 | 3 | Ring buffer + load simulator | done |
 | 4 | Parity check (Checkpoint 3) | done |
 | 5 | Hardening + lock-free freeze (Checkpoint 4) | done |
-| 6 | Full benchmarks (Checkpoint 5) | in progress |
-| 7 | Report + final review (Checkpoint 6) | not started |
-
-## How to build and test
-
-```
-mvn clean test                 # compile and run all tests
-mvn clean package              # also builds target/benchmarks.jar
-java -jar target/benchmarks.jar SmokeBenchmark -f 1 -wi 1 -i 2 -w 1s -r 1s
-```
-
-The full benchmark and correctness instructions are filled in on Day 7.
+| 6 | Full benchmarks (Checkpoint 5) | done |
+| 7 | Report + final review (Checkpoint 6) | done (tag `v1.0`) |
